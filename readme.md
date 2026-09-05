@@ -56,13 +56,10 @@
 저장소 최상위 폴더에서 실행합니다.
 
 ```bash
-# 최초 실행: 앱·MongoDB·Qdrant·Ollama를 시작하고 퀴즈 데이터를 적재합니다.
+# 최초 실행: 앱·MongoDB·Qdrant를 시작하고 퀴즈 데이터를 적재합니다.
 docker compose --profile init up --build -d
 
-# 최초 한 번: 로컬 답변 모델과 임베딩 모델을 받습니다.
-docker compose --profile ollama-init run --rm ollama-init
-
-# 모델을 받은 뒤 문서를 Ollama 임베딩으로 색인합니다.
+# 최초 한 번: Ollama 없이 문서를 hash 임베딩으로 색인합니다.
 docker compose --profile tools run --rm docs-index
 
 # 이후 실행
@@ -291,8 +288,7 @@ MongoDB·Qdrant·Ollama를 모두 로컬에 설치하지 않았다면, Docker Co
 Python 백엔드를 직접 실행할 수도 있습니다.
 
 ```bash
-docker compose up -d mongo qdrant ollama
-docker compose --profile ollama-init run --rm ollama-init
+docker compose up -d mongo qdrant
 ```
 
 문서 검색을 처음 사용하거나 `docs/`의 Markdown을 변경한 뒤에는 Qdrant에 문서를 색인합니다.
@@ -300,9 +296,9 @@ docker compose --profile ollama-init run --rm ollama-init
 ```bash
 QDRANT_URL=http://localhost:6333 \
 QDRANT_COLLECTION=investment_docs \
-RAG_EMBEDDING_PROVIDER=ollama \
-RAG_EMBEDDING_URL=http://localhost:11434/api/embed \
-RAG_EMBEDDING_MODEL=embeddinggemma \
+RAG_EMBEDDING_PROVIDER=hash \
+RAG_EMBEDDING_URL= \
+RAG_EMBEDDING_MODEL= \
 ./scripts/upload_docs_to_qdrant.sh
 ```
 

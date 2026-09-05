@@ -16,13 +16,13 @@ services:
       MONGODB_DB: ${MONGODB_DB:-investment_db}
       QDRANT_URL: http://qdrant:6333
       QDRANT_COLLECTION: ${QDRANT_COLLECTION:-investment_docs}
-      RAG_EMBEDDING_PROVIDER: ${RAG_EMBEDDING_PROVIDER:-ollama}
-      RAG_EMBEDDING_URL: ${RAG_EMBEDDING_URL:-http://ollama:11434/api/embed}
-      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL:-embeddinggemma}
+      RAG_EMBEDDING_PROVIDER: ${RAG_EMBEDDING_PROVIDER:-hash}
+      RAG_EMBEDDING_URL: ${RAG_EMBEDDING_URL:-}
+      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL:-}
       RAG_EMBEDDING_TIMEOUT_SECONDS: ${RAG_EMBEDDING_TIMEOUT_SECONDS:-180}
       RAG_LLM_BASE_URL: ${RAG_LLM_BASE_URL:-http://ollama:11434/v1}
-      RAG_LLM_API_KEY: ${RAG_LLM_API_KEY:-ollama}
-      RAG_LLM_MODEL: ${RAG_LLM_MODEL:-qwen3:8b}
+      RAG_LLM_API_KEY: ${RAG_LLM_API_KEY:-}
+      RAG_LLM_MODEL: ${RAG_LLM_MODEL:-}
       RAG_LLM_TIMEOUT_SECONDS: ${RAG_LLM_TIMEOUT_SECONDS:-180}
       # 실제 키는 저장소 루트의 .env에만 설정합니다. 기본값에 키를 넣지 마세요.
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
@@ -47,8 +47,6 @@ services:
         condition: service_healthy
       qdrant:
         condition: service_started
-      ollama:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8000/api/health"]
       interval: 15s
@@ -83,6 +81,7 @@ services:
       - investment_qdrant_data:/qdrant/storage
 
   ollama:
+    profiles: ["ollama"]
     image: ollama/ollama:latest
     container_name: investment_ollama
     restart: unless-stopped
@@ -132,18 +131,15 @@ services:
     environment:
       QDRANT_URL: http://qdrant:6333
       QDRANT_COLLECTION: ${QDRANT_COLLECTION:-investment_docs}
-      RAG_EMBEDDING_PROVIDER: ${RAG_EMBEDDING_PROVIDER:-ollama}
-      RAG_EMBEDDING_URL: ${RAG_EMBEDDING_URL:-http://ollama:11434/api/embed}
-      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL:-embeddinggemma}
+      RAG_EMBEDDING_PROVIDER: ${RAG_EMBEDDING_PROVIDER:-hash}
+      RAG_EMBEDDING_URL: ${RAG_EMBEDDING_URL:-}
+      RAG_EMBEDDING_MODEL: ${RAG_EMBEDDING_MODEL:-}
       RAG_EMBEDDING_TIMEOUT_SECONDS: ${RAG_EMBEDDING_TIMEOUT_SECONDS:-180}
     volumes:
       - ./docs:/app/docs:ro
     depends_on:
       qdrant:
         condition: service_started
-      # 임베딩을 생성하므로 Qdrant뿐 아니라 Ollama와 임베딩 모델도 준비돼야 한다.
-      ollama:
-        condition: service_healthy
     command: ["/app/scripts/upload_docs_to_qdrant.sh"]
 
 volumes:
